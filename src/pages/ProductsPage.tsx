@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { CheckboxRoot, CheckboxIndicator } from "@radix-ui/react-checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Check } from "lucide-react";
 
 export default function ProductsPage() {
@@ -67,30 +67,20 @@ export default function ProductsPage() {
               <h3 className="text-lg font-medium mb-3">Categories</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <CheckboxRoot 
+                  <Checkbox 
                     id="all-categories"
                     checked={selectedCategory === ""}
                     onCheckedChange={() => setSelectedCategory("")}
-                    className="h-4 w-4 rounded border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  >
-                    <CheckboxIndicator>
-                      <Check className="h-3 w-3 text-white" />
-                    </CheckboxIndicator>
-                  </CheckboxRoot>
+                  />
                   <Label htmlFor="all-categories">All Categories</Label>
                 </div>
                 {categories.map((category) => (
                   <div key={category.id} className="flex items-center space-x-2">
-                    <CheckboxRoot
+                    <Checkbox
                       id={`category-${category.id}`}
                       checked={selectedCategory === category.id}
                       onCheckedChange={() => setSelectedCategory(category.id)}
-                      className="h-4 w-4 rounded border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    >
-                      <CheckboxIndicator>
-                        <Check className="h-3 w-3 text-white" />
-                      </CheckboxIndicator>
-                    </CheckboxRoot>
+                    />
                     <Label htmlFor={`category-${category.id}`}>
                       {category.name}
                     </Label>
