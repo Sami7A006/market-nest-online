@@ -20,6 +20,7 @@ import RegisterPage from "./pages/RegisterPage";
 import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
 import SellerProductsPage from "./pages/seller/SellerProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
+import RegisterSellerPage from "./pages/seller/RegisterSellerPage";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                   <Route path="/register" element={<RegisterPage />} />
                   
                   {/* Seller routes */}
+                  <Route path="/seller/register" element={<RegisterSellerPage />} />
                   <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
                   <Route path="/seller/products" element={<SellerProductsPage />} />
                   <Route path="/seller/products/new" element={<ProductFormPage />} />

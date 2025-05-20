@@ -28,7 +28,7 @@ export default function LoginPage() {
       await login(email, password);
       toast({
         title: "Login successful",
-        description: "Welcome back!",
+        description: "Welcome back to FashionHub!",
       });
       navigate("/");
     } catch (error: any) {
@@ -42,7 +42,7 @@ export default function LoginPage() {
     <div className="container px-4 py-16 mx-auto">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Log In to Your Account</h1>
+          <h1 className="text-2xl font-bold mb-2">Log In to FashionHub</h1>
           <p className="text-gray-600">
             Enter your email and password to access your account
           </p>
@@ -65,6 +65,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="border-black rounded-none"
             />
           </div>
           
@@ -73,7 +74,7 @@ export default function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Link 
                 to="/forgot-password" 
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-black hover:underline"
               >
                 Forgot password?
               </Link>
@@ -84,12 +85,13 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="border-black rounded-none"
             />
           </div>
           
           <Button 
             type="submit" 
-            className="w-full" 
+            className="w-full bg-black hover:bg-gray-800 text-white" 
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Log in"}
@@ -99,14 +101,14 @@ export default function LoginPage() {
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Don't have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline">
+            <Link to="/register" className="text-black font-medium hover:underline">
               Sign up
             </Link>
           </p>
           <p className="mt-2 text-gray-600 text-sm">
-            Are you a seller?{" "}
-            <Link to="/seller/login" className="text-primary hover:underline">
-              Seller login
+            Are you a designer?{" "}
+            <Link to="/seller/register" className="text-black font-medium hover:underline">
+              Create seller account
             </Link>
           </p>
         </div>
