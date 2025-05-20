@@ -1,5 +1,8 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 export type User = {
   id: string;
@@ -13,55 +16,144 @@ type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: "buyer" | "seller") => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  isLoading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  // For demo purposes, we'll use a mock implementation
-  const login = async (email: string, password: string) => {
-    // In a real app, this would make an API call to validate credentials
-    // For demo, we'll just mock a successful login
-    console.log("Login attempt:", email, password);
-    
-    // Mock user based on email to simulate different roles
-    const mockUser: User = {
-      id: Math.random().toString(36).substring(2, 11),
-      name: email.split("@")[0],
-      email,
-      role: email.includes("seller") ? "seller" : "buyer",
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          // Safely fetch user profile outside the callback to avoid race conditions
+          setTimeout(() => {
+            fetchUserProfile(currentSession.user.id);
+          }, 0);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      
+      if (currentSession?.user) {
+        fetchUserProfile(currentSession.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
+  }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, email, role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        setIsLoading(false);
+        return;
+      }
+
+      setUser({
+        id: userId,
+        name: data.name || '',
+        email: data.email || '',
+        role: data.role as "buyer" | "seller"
+      });
+    } catch (error) {
+      console.error("Error in profile fetch:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error("Error logging in:", error.message);
+      toast({
+        title: "Login failed",
+        description: error.message || "Unable to log in. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   const register = async (name: string, email: string, password: string, role: "buyer" | "seller") => {
-    // In a real app, this would make an API call to register the user
-    // For demo, we'll just mock a successful registration
-    console.log("Register attempt:", name, email, password, role);
-    
-    const mockUser: User = {
-      id: Math.random().toString(36).substring(2, 11),
-      name,
-      email,
-      role,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role
+          }
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error("Error registering:", error.message);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Unable to register. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error: any) {
+      console.error("Error logging out:", error.message);
+      toast({
+        title: "Logout failed",
+        description: error.message || "An error occurred during logout.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!user, user, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated: !!session, 
+      user, 
+      login, 
+      register, 
+      logout, 
+      isLoading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

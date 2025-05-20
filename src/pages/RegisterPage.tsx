@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -17,6 +20,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   
   const { register } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,14 +32,22 @@ export default function RegisterPage() {
       return;
     }
     
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      // For demo purposes, we will allow any registration
       await register(name, email, password, role);
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created. Please check your email for verification.",
+      });
       navigate("/");
-    } catch (error) {
-      setError("Registration failed. Please try again.");
+    } catch (error: any) {
+      setError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -52,9 +64,10 @@ export default function RegisterPage() {
         </div>
         
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md mb-6">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         <form onSubmit={handleSubmit} className="space-y-4">

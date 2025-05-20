@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   
   const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,11 +25,14 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // For demo purposes, we will allow any login
       await login(email, password);
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
       navigate("/");
-    } catch (error) {
-      setError("Invalid email or password");
+    } catch (error: any) {
+      setError(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -42,9 +49,10 @@ export default function LoginPage() {
         </div>
         
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md mb-6">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
